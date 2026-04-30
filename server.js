@@ -185,9 +185,9 @@ process.on('uncaughtException', (err) => {
 
 // Try starting the server and if the port is in use, attempt the next port
 function startServer(port) {
-  const server = app.listen(port, '127.0.0.1', () => {
+  // const server = app.listen(port, '127.0.0.1', () => {
 
-    // const server = app.listen(port,() => {
+    const server = app.listen(port,() => {
     console.log(`Server running on port ${port}`);
     console.log(`Health check available at http://localhost:${port}/api/health`);
   });
