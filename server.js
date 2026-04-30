@@ -39,7 +39,8 @@ const allowedOrigins = [
   'https://phpstack-1433645-6087812.cloudwaysapps.com',
   'https://booking.sabhyatafoundation.com',
   'http://manage.sabhyatafoundation.com',
-  'https://manage.sabhyatafoundation.com'
+  'https://manage.sabhyatafoundation.com',
+  'https://sabhyata-uat.netlify.app'
 ].filter(Boolean);
 
 const corsOptions = {
