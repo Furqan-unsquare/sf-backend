@@ -1,0 +1,4156 @@
+openapi: 3.0.3
+info:
+  title: Sabhyata Foundation API
+  description: Comprehensive API documentation for the Sabhyata Foundation backend, handling authentication, admin operations, public endpoints, and payments.
+  version: 1.0.0
+  contact:
+    name: Sabhyata Foundation
+    email: support@sabhyata-foundation.org
+servers:
+  - url: https://phpstack-1433645-6069225.cloudwaysapps.com/api
+    description: Local development server
+  - url: https://phpstack-1433645-6069225.cloudwaysapps.com/
+    description: Production server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+        error:
+          type: string
+      required:
+        - success
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        error:
+          type: string
+      required:
+        - success
+        - message
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [user, admin]
+        phone:
+          type: string
+        isActive:
+          type: boolean
+        isBlocked:
+          type: boolean
+        lastLogin:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          type: string
+          enum: [user, admin]
+          default: user
+      required:
+        - name
+        - email
+        - password
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+            user:
+              $ref: "#/components/schemas/User"
+    ChangePasswordRequest:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 6
+      required:
+        - currentPassword
+        - newPassword
+    TimeSlot:
+      type: object
+      properties:
+        time:
+          type: string
+          pattern: '^([01]\d|2[0-3]):([0-5]\d)$'
+        lang:
+          type: string
+          enum: [en, hi]
+      required:
+        - time
+        - lang
+    DailySchedule:
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        timeSlots:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimeSlot"
+      required:
+        - startDate
+        - endDate
+        - timeSlots
+    SpecificSchedule:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        timeSlots:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimeSlot"
+      required:
+        - date
+        - timeSlots
+    Event:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          maxLength: 200
+        images:
+          type: array
+          items:
+            type: string
+        thumbnail:
+          type: string
+        videos:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+          maxLength: 1000
+        recurrence:
+          type: string
+          enum: [specific, daily]
+        dailySchedule:
+          $ref: "#/components/schemas/DailySchedule"
+        specificSchedules:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecificSchedule"
+        duration:
+          type: number
+          minimum: 0.5
+        ageLimit:
+          type: string
+          enum: [all, "5+", "12+", "18+", "21+"]
+        instructions:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, published, inactive]
+        type:
+          type: string
+          enum: [walking, configure]
+        capacity:
+          type: number
+          minimum: 1
+        price:
+          type: number
+          minimum: 0
+        configureSeats:
+          type: boolean
+        venue:
+          type: string
+        childDiscountPercentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        foreignerIncreasePercentage:
+          type: number
+          minimum: 0
+        isSpecial:
+          type: boolean
+        isInterested:
+          type: number
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - name
+        - description
+        - duration
+        - ageLimit
+        - type
+        - venue
+    EventCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        recurrence:
+          type: string
+          enum: [specific, daily]
+        dailySchedule:
+          type: string
+          description: JSON string of daily schedule
+        specificSchedules:
+          type: string
+          description: JSON string of specific schedules
+        duration:
+          type: number
+        ageLimit:
+          type: string
+        instructions:
+          type: string
+          description: JSON array of instructions
+        status:
+          type: string
+        type:
+          type: string
+        capacity:
+          type: number
+        price:
+          type: number
+        configureSeats:
+          type: boolean
+        venue:
+          type: string
+        childDiscountPercentage:
+          type: number
+        foreignerIncreasePercentage:
+          type: number
+        isSpecial:
+          type: boolean
+        videos:
+          type: string
+          description: JSON array of video URLs
+        existingImages:
+          type: string
+          description: JSON array of existing image URLs
+        images:
+          type: array
+          items:
+            type: string
+            format: binary
+    SeatData:
+      type: object
+      properties:
+        seatId:
+          type: string
+        row:
+          type: string
+        number:
+          type: number
+        section:
+          type: string
+        category:
+          type: string
+          enum: [VIP, Premium, Gold, Silver, Bronze]
+        price:
+          type: number
+          minimum: 0
+        status:
+          type: string
+          enum: [available, booked, locked, blocked]
+        lockedBy:
+          type: string
+        lockedAt:
+          type: string
+          format: date-time
+        coords:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+          required:
+            - x
+            - y
+      required:
+        - seatId
+        - row
+        - number
+        - section
+        - category
+        - price
+        - coords
+    SeatLayout:
+      type: object
+      properties:
+        _id:
+          type: string
+        event_id:
+          type: string
+        layout_data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeatData"
+        total_seats:
+          type: number
+        available_seats:
+          type: number
+        booked_seats:
+          type: number
+        layout_name:
+          type: string
+        created_by:
+          type: string
+        is_published:
+          type: boolean
+        stage:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+            width:
+              type: number
+            height:
+              type: number
+            label:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Ticket:
+      type: object
+      properties:
+        ticketId:
+          type: string
+        type:
+          type: string
+          enum: [adult, child]
+        price:
+          type: number
+        isUsed:
+          type: boolean
+      required:
+        - type
+        - price
+    Booking:
+      type: object
+      properties:
+        _id:
+          type: string
+        bookingReference:
+          type: string
+        event:
+          type: string
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        language:
+          type: string
+        seats:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeatData"
+        tickets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ticket"
+        totalAmount:
+          type: number
+        contactInfo:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+        paymentMethod:
+          type: string
+          enum: [card, upi, netbanking]
+        notes:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled]
+        paymentStatus:
+          type: string
+          enum: [pending, paid, failed]
+        sessionId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - event
+        - date
+        - time
+        - tickets
+        - totalAmount
+    BookingCreateRequest:
+      type: object
+      properties:
+        event:
+          type: string
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+        seats:
+          type: array
+          items:
+            type: string
+        tickets:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [adult, child]
+              price:
+                type: number
+        totalAmount:
+          type: number
+        contactInfo:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+        paymentMethod:
+          type: string
+        notes:
+          type: string
+        sessionId:
+          type: string
+      required:
+        - event
+        - date
+        - time
+        - tickets
+        - totalAmount
+    Monument:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        category:
+          type: string
+          enum: [historical, religious, architectural, natural, cultural, other]
+        image:
+          type: object
+          properties:
+            base64:
+              type: string
+        status:
+          type: string
+          enum: [active, inactive, pending]
+        establishmentEra:
+          type: string
+          maxLength: 100
+        style:
+          type: string
+          maxLength: 100
+        location:
+          type: object
+          properties:
+            state:
+              type: string
+            city:
+              type: string
+        tags:
+          type: array
+          items:
+            type: string
+        events:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - name
+        - description
+        - category
+    AbandonedCart:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        event:
+          type: string
+        tickets:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [adult, child]
+              price:
+                type: number
+        totalAmount:
+          type: number
+        contactInfo:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+        sessionId:
+          type: string
+        status:
+          type: string
+          enum: [active, expired, recovered, abandoned]
+        remindersSent:
+          type: number
+        lastReminderSent:
+          type: string
+          format: date-time
+        recoveredAt:
+          type: string
+          format: date-time
+        recoveredBookingId:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - event
+        - tickets
+        - totalAmount
+    PaymentOrder:
+      type: object
+      properties:
+        success:
+          type: boolean
+        id:
+          type: string
+        amount:
+          type: number
+        data:
+          type: object
+      required:
+        - success
+        - id
+        - amount
+    PaymentVerifyRequest:
+      type: object
+      properties:
+        razorpay_order_id:
+          type: string
+        razorpay_payment_id:
+          type: string
+        razorpay_signature:
+          type: string
+        bookingId:
+          type: string
+      required:
+        - razorpay_order_id
+        - razorpay_payment_id
+        - razorpay_signature
+        - bookingId
+    DashboardStats:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            overview:
+              type: object
+              properties:
+                totalRevenue:
+                  type: number
+                totalPaidBookings:
+                  type: number
+                totalUsers:
+                  type: number
+                totalEvents:
+                  type: number
+                pendingBookings:
+                  type: number
+                abandonedCarts:
+                  type: number
+            bookingTrends:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                  bookings:
+                    type: number
+                  revenue:
+                    type: number
+            salesSources:
+              type: array
+              items:
+                type: object
+                properties:
+                  source:
+                    type: string
+                  count:
+                    type: number
+                  revenue:
+                    type: number
+            recentBookings:
+              type: array
+              items:
+                $ref: "#/components/schemas/Booking"
+    PaginationInfo:
+      type: object
+      properties:
+        currentPage:
+          type: number
+        totalPages:
+          type: number
+        totalCount:
+          type: number
+        limit:
+          type: number
+        hasNextPage:
+          type: boolean
+        hasPrevPage:
+          type: boolean
+    Analytics:
+      type: object
+      properties:
+        total:
+          type: number
+        breakdown:
+          type: object
+          additionalProperties:
+            type: number
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/login:
+    post:
+      summary: Login a user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/me:
+    get:
+      summary: Get current user
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/logout:
+    post:
+      summary: Logout user
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/profile:
+    put:
+      summary: Update user profile
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/staff-login:
+    post:
+      summary: Login as staff/admin
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/send-otp:
+    post:
+      summary: Send OTP for verification
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        "200":
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: Invalid input
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+              required:
+                - otp
+      responses:
+        "200":
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+        "400":
+          description: Invalid OTP
+  /admin/logs:
+    get:
+      summary: Get system logs
+      tags:
+        - Logs
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+  /admin/partners/list-all:
+    get:
+      summary: List all partners
+      tags:
+        - Admin Partners
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of partners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+  /admin/partners/approve/{partnerId}:
+    post:
+      summary: Approve a partner
+      tags:
+        - Admin Partners
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Partner approved
+  /admin/partners/reject/{partnerId}:
+    post:
+      summary: Reject a partner
+      tags:
+        - Admin Partners
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Partner rejected
+  /admin/bulk-bookings/create:
+    post:
+      summary: Create bulk booking
+      tags:
+        - Bulk Bookings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Bulk booking created
+  /admin/bulk-bookings/create-walking:
+    post:
+      summary: Create bulk booking (walking)
+      tags:
+        - Bulk Bookings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Bulk booking created
+  /admin/bulk-bookings/{bookingId}:
+    get:
+      summary: Get bulk booking details
+      tags:
+        - Bulk Bookings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bulk booking details
+  /admin/events:
+    get:
+      summary: Get all events
+      tags:
+        - Events
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden (not admin)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create a new event
+      tags:
+        - Events
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                date:
+                  type: string
+                  format: date-time
+                category:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - title
+                - description
+                - date
+      responses:
+        "201":
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/events/{id}:
+    get:
+      summary: Get event by ID
+      tags:
+        - Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    put:
+      summary: Update an event
+      tags:
+        - Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                date:
+                  type: string
+                  format: date-time
+                category:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: Event updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          description: Invalid input
+        "404":
+          description: Event not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    delete:
+      summary: Delete an event
+      tags:
+        - Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Event not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/events/{id}/status:
+    patch:
+      summary: Toggle event status
+      tags:
+        - Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event status toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Event not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/bookings/pending:
+    get:
+      summary: Get pending bookings
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of pending bookings
+  /admin/bookings/my-bookings:
+    get:
+      summary: Get my bookings (admin)
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of admin bookings
+  /admin/bookings/{id}/approve:
+    post:
+      summary: Approve booking
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking approved
+  /admin/bookings/{id}/reject:
+    post:
+      summary: Reject booking
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking rejected
+  /admin/bookings:
+    get:
+      summary: Get all bookings
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    post:
+      summary: Create a booking
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventId:
+                  type: string
+                userId:
+                  type: string
+                seats:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - eventId
+                - userId
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/bookings/export:
+    get:
+      summary: Export bookings as CSV
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: CSV file of bookings
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/bookings/analytics:
+    get:
+      summary: Get booking analytics
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Booking analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/bookings/{id}:
+    get:
+      summary: Get booking by ID
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Booking not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    put:
+      summary: Update a booking
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, confirmed, cancelled]
+      responses:
+        "200":
+          description: Booking updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "400":
+          description: Invalid input
+        "404":
+          description: Booking not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    delete:
+      summary: Delete a booking
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Booking not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/bookings/bulk-delete:
+    post:
+      summary: Bulk delete bookings
+      tags:
+        - Bookings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookingIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - bookingIds
+      responses:
+        "200":
+          description: Bookings deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/dashboard/stats:
+    get:
+      summary: Get dashboard statistics
+      tags:
+        - Dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: number
+                  bookings:
+                    type: number
+                  events:
+                    type: number
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/dashboard/stats:
+    get:
+      summary: Get revenue analytics
+      tags:
+        - Dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Revenue analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/users:
+    get:
+      summary: Get all users
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/users/export:
+    get:
+      summary: Export users as CSV
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: CSV file of users
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/users/stats:
+    get:
+      summary: Get user statistics
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/users/{id}:
+    get:
+      summary: Get user by ID
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    put:
+      summary: Update a user
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                name:
+                  type: string
+                role:
+                  type: string
+                  enum: [user, admin]
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+        "404":
+          description: User not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    delete:
+      summary: Delete a user
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: User not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/users/{id}/block:
+    post:
+      summary: Toggle user block status
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User block status toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/monuments:
+    get:
+      summary: Get all monuments
+      tags:
+        - Monuments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of monuments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Monument"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    post:
+      summary: Create a monument
+      tags:
+        - Monuments
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+              required:
+                - name
+                - description
+                - location
+      responses:
+        "201":
+          description: Monument created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monument"
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/monuments/filters:
+    get:
+      summary: Get monument filters
+      tags:
+        - Monuments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Monument filters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  locations:
+                    type: array
+                    items:
+                      type: string
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/monuments/{id}:
+    get:
+      summary: Get monument by ID
+      tags:
+        - Monuments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Monument details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monument"
+        "404":
+          description: Monument not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    put:
+      summary: Update a monument
+      tags:
+        - Monuments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+      responses:
+        "200":
+          description: Monument updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Monument"
+        "400":
+          description: Invalid input
+        "404":
+          description: Monument not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    delete:
+      summary: Delete a monument
+      tags:
+        - Monuments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Monument deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Monument not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/abandoned-carts:
+    get:
+      summary: Get all abandoned carts
+      tags:
+        - Abandoned Carts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of abandoned carts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AbandonedCart"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/abandoned-carts/export:
+    get:
+      summary: Export abandoned carts as CSV
+      tags:
+        - Abandoned Carts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: CSV file of abandoned carts
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/abandoned-carts/analytics:
+    get:
+      summary: Get abandoned cart analytics
+      tags:
+        - Abandoned Carts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Abandoned cart analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/abandoned-carts/{id}:
+    get:
+      summary: Get abandoned cart by ID
+      tags:
+        - Abandoned Carts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Abandoned cart details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AbandonedCart"
+        "404":
+          description: Cart not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    delete:
+      summary: Delete an abandoned cart
+      tags:
+        - Abandoned Carts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cart deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Cart not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/abandoned-carts/{id}/reminder:
+    post:
+      summary: Send reminder for abandoned cart
+      tags:
+        - Abandoned Carts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reminder sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Cart not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/seat-layouts:
+    post:
+      summary: Create a seat layout
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventId:
+                  type: string
+                seats:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      seatId:
+                        type: string
+                      status:
+                        type: string
+                        enum: [available, held, booked, locked]
+              required:
+                - eventId
+                - seats
+      responses:
+        "201":
+          description: Seat layout created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/seat-layouts/{event_id}:
+    get:
+      summary: Get seat layout for an event
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seat layout details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    put:
+      summary: Update a seat layout
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seats:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      seatId:
+                        type: string
+                      status:
+                        type: string
+                        enum: [available, held, booked, locked]
+      responses:
+        "200":
+          description: Seat layout updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+    delete:
+      summary: Delete a seat layout
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seat layout deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/seat-layouts/{event_id}/hold-seats:
+    post:
+      summary: Hold seats for an event
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats held
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/seat-layouts/{event_id}/release-seats:
+    post:
+      summary: Release held seats
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats released
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/seat-layouts/{event_id}/publish:
+    post:
+      summary: Publish a seat layout
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seat layout published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/seat-layouts/{event_id}/availability:
+    get:
+      summary: Get seat availability
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seat availability details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (not admin)
+  /admin/seat-layouts/{id}/book:
+    post:
+      summary: Book seats for an event
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats booked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+  /admin/seat-layouts/{event_id}/lock-seats:
+    post:
+      summary: Lock seats for an event (user-facing)
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats locked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+  /admin/seat-layouts/{eventId}/category-price:
+    put:
+      summary: Update category price
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categoryName:
+                  type: string
+                price:
+                  type: number
+              required:
+                - categoryName
+                - price
+      responses:
+        "200":
+          description: Category price updated
+  /admin/seat-layouts/{event_id}/unlock-seats:
+    post:
+      summary: Unlock seats for an event (user-facing)
+      tags:
+        - Seat Layouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats unlocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeatLayout"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+        "401":
+          description: Unauthorized
+  /payments/create-order:
+    post:
+      summary: Create a payment order
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookingId:
+                  type: string
+                amount:
+                  type: number
+                currency:
+                  type: string
+              required:
+                - bookingId
+                - amount
+      responses:
+        "200":
+          description: Payment order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentOrder"
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+  /payments/verify:
+    post:
+      summary: Verify payment
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderId:
+                  type: string
+                paymentId:
+                  type: string
+                signature:
+                  type: string
+              required:
+                - orderId
+                - paymentId
+                - signature
+      responses:
+        "200":
+          description: Payment verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: Invalid payment details
+        "401":
+          description: Unauthorized
+  /payments/verify-ticket/{bookingId}/{ticketId}:
+    get:
+      summary: Verify a ticket
+      tags:
+        - Payments
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ticket verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+        "404":
+          description: Ticket or booking not found
+        "401":
+          description: Unauthorized
+  # PUBLIC ENDPOINTS
+  /dashboard/stats:
+    get:
+      summary: Get public dashboard statistics
+      tags:
+        - Public Dashboard
+      responses:
+        "200":
+          description: Public dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+  /dashboard/revenue-analytics:
+    get:
+      summary: Get public revenue analytics
+      tags:
+        - Public Dashboard
+      responses:
+        "200":
+          description: Public revenue analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+  /events:
+    get:
+      summary: Get all public events
+      tags:
+        - Public Events
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, inactive]
+      responses:
+        "200":
+          description: List of public events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Event"
+                      pagination:
+                        $ref: "#/components/schemas/PaginationInfo"
+    post:
+      summary: Create a public event
+      tags:
+        - Public Events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventCreateRequest"
+      responses:
+        "201":
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /events/{id}:
+    get:
+      summary: Get public event by ID
+      tags:
+        - Public Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Event"
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Update a public event
+      tags:
+        - Public Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventCreateRequest"
+      responses:
+        "200":
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Event not found
+    delete:
+      summary: Delete a public event
+      tags:
+        - Public Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Event not found
+  /events/{id}/status:
+    patch:
+      summary: Toggle public event status
+      tags:
+        - Public Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event status toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Event not found
+  /events/{id}/interest:
+    patch:
+      summary: Toggle interest in event
+      tags:
+        - Public Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Interest toggled
+  /events/{id}/remaining-capacity:
+    get:
+      summary: Get remaining capacity
+      tags:
+        - Public Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Remaining capacity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capacity:
+                    type: number
+  /bookings:
+    get:
+      summary: Get public bookings
+      tags:
+        - Public Bookings
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Booking"
+    post:
+      summary: Create a public booking
+      tags:
+        - Public Bookings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingCreateRequest"
+      responses:
+        "201":
+          description: Booking created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /bookings/export:
+    get:
+      summary: Export public bookings as CSV
+      tags:
+        - Public Bookings
+      responses:
+        "200":
+          description: CSV file of bookings
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+  /bookings/analytics:
+    get:
+      summary: Get public booking analytics
+      tags:
+        - Public Bookings
+      responses:
+        "200":
+          description: Booking analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+  /bookings/{id}:
+    get:
+      summary: Get public booking by ID
+      tags:
+        - Public Bookings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Booking"
+        "404":
+          description: Booking not found
+    put:
+      summary: Update a public booking
+      tags:
+        - Public Bookings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingCreateRequest"
+      responses:
+        "200":
+          description: Booking updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Booking not found
+    delete:
+      summary: Delete a public booking
+      tags:
+        - Public Bookings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Booking not found
+  /bookings/bulk-delete:
+    post:
+      summary: Bulk delete public bookings
+      tags:
+        - Public Bookings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookingIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - bookingIds
+      responses:
+        "200":
+          description: Bookings deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+  /users:
+    get:
+      summary: Get public users
+      tags:
+        - Public Users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+  /users/export:
+    get:
+      summary: Export public users as CSV
+      tags:
+        - Public Users
+      responses:
+        "200":
+          description: CSV file of users
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+  /users/stats:
+    get:
+      summary: Get public user statistics
+      tags:
+        - Public Users
+      responses:
+        "200":
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+  /users/{id}:
+    get:
+      summary: Get public user by ID
+      tags:
+        - Public Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+    put:
+      summary: Update a public user
+      tags:
+        - Public Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: User not found
+    delete:
+      summary: Delete a public user
+      tags:
+        - Public Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: User not found
+  /users/{id}/block:
+    patch:
+      summary: Toggle public user block status
+      tags:
+        - Public Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User block status toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: User not found
+  /monuments:
+    get:
+      summary: Get all public monuments
+      tags:
+        - Public Monuments
+      responses:
+        "200":
+          description: List of monuments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Monument"
+    post:
+      summary: Create a public monument
+      tags:
+        - Public Monuments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                  enum:
+                    [
+                      historical,
+                      religious,
+                      architectural,
+                      natural,
+                      cultural,
+                      other,
+                    ]
+              required:
+                - name
+                - description
+                - category
+      responses:
+        "201":
+          description: Monument created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+  /monuments/filters:
+    get:
+      summary: Get public monument filters
+      tags:
+        - Public Monuments
+      responses:
+        "200":
+          description: Monument filters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      categories:
+                        type: array
+                        items:
+                          type: string
+                      states:
+                        type: array
+                        items:
+                          type: string
+                      cities:
+                        type: array
+                        items:
+                          type: string
+  /monuments/{id}:
+    get:
+      summary: Get public monument by ID
+      tags:
+        - Public Monuments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Monument details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Monument"
+        "404":
+          description: Monument not found
+    put:
+      summary: Update a public monument
+      tags:
+        - Public Monuments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                  enum:
+                    [
+                      historical,
+                      religious,
+                      architectural,
+                      natural,
+                      cultural,
+                      other,
+                    ]
+      responses:
+        "200":
+          description: Monument updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Monument not found
+    delete:
+      summary: Delete a public monument
+      tags:
+        - Public Monuments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Monument deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Monument not found
+  /monuments/{id}/events:
+    get:
+      summary: Get events for a monument
+      tags:
+        - Public Monuments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Events for the monument
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Event"
+        "404":
+          description: Monument not found
+  /abandoned-carts:
+    get:
+      summary: Get all public abandoned carts
+      tags:
+        - Public Abandoned Carts
+      responses:
+        "200":
+          description: List of abandoned carts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AbandonedCart"
+    post:
+      summary: Create a public abandoned cart
+      tags:
+        - Public Abandoned Carts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                tickets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum: [adult, child]
+                      price:
+                        type: number
+                totalAmount:
+                  type: number
+                contactInfo:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    phone:
+                      type: string
+                sessionId:
+                  type: string
+              required:
+                - event
+                - tickets
+                - totalAmount
+      responses:
+        "201":
+          description: Abandoned cart created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+  /abandoned-carts/export:
+    get:
+      summary: Export public abandoned carts as CSV
+      tags:
+        - Public Abandoned Carts
+      responses:
+        "200":
+          description: CSV file of abandoned carts
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+  /abandoned-carts/analytics:
+    get:
+      summary: Get public abandoned cart analytics
+      tags:
+        - Public Abandoned Carts
+      responses:
+        "200":
+          description: Abandoned cart analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+  /abandoned-carts/{id}:
+    get:
+      summary: Get public abandoned cart by ID
+      tags:
+        - Public Abandoned Carts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Abandoned cart details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AbandonedCart"
+        "404":
+          description: Cart not found
+    delete:
+      summary: Delete a public abandoned cart
+      tags:
+        - Public Abandoned Carts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cart deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Cart not found
+  /abandoned-carts/{id}/reminder:
+    post:
+      summary: Send reminder for public abandoned cart
+      tags:
+        - Public Abandoned Carts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reminder sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Cart not found
+  /seat-layouts:
+    post:
+      summary: Create a public seat layout
+      tags:
+        - Public Seat Layouts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_id:
+                  type: string
+                layout_data:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/SeatData"
+              required:
+                - event_id
+                - layout_data
+      responses:
+        "201":
+          description: Seat layout created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+  /seat-layouts/{event_id}:
+    get:
+      summary: Get public seat layout for an event
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seat layout details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/SeatLayout"
+        "404":
+          description: Seat layout not found
+    put:
+      summary: Update a public seat layout
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                layout_data:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/SeatData"
+      responses:
+        "200":
+          description: Seat layout updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+    delete:
+      summary: Delete a public seat layout
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seat layout deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Seat layout not found
+  /seat-layouts/{event_id}/hold-seats:
+    post:
+      summary: Hold seats for a public event
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats held successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+  /seat-layouts/{event_id}/release-seats:
+    post:
+      summary: Release held seats for a public event
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats released successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+  /seat-layouts/{event_id}/publish:
+    post:
+      summary: Publish a public seat layout
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seat layout published successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Seat layout not found
+  /seat-layouts/{event_id}/availability:
+    get:
+      summary: Get public seat availability
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Seat availability details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/SeatLayout"
+        "404":
+          description: Seat layout not found
+  /seat-layouts/{id}/book:
+    post:
+      summary: Book seats for a public event
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats booked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+  /seat-layouts/{event_id}/lock-seats:
+    post:
+      summary: Lock seats for a public event
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats locked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+  /seat-layouts/{event_id}/unlock-seats:
+    post:
+      summary: Unlock seats for a public event
+      tags:
+        - Public Seat Layouts
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - seatIds
+      responses:
+        "200":
+          description: Seats unlocked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid input
+        "404":
+          description: Seat layout not found
+  /health:
+    get:
+      summary: Check server health
+      tags:
+        - System
+      responses:
+        "200":
+          description: Server health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: number
+                  memory:
+                    type: object
+                    properties:
+                      rss:
+                        type: string
+                      heapUsed:
+                        type: string
+                      heapTotal:
+                        type: string
+                  dbStatus:
+                    type: string
+                    enum: [connected, disconnected]
+  # Temp Booking Routes
+  /temp-bookings/create:
+    post:
+      summary: Create a temporary booking (lock seats)
+      tags:
+        - Temp Bookings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  description: Event ID
+                date:
+                  type: string
+                  format: date
+                time:
+                  type: string
+                language:
+                  type: string
+                seats:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of seat IDs (for configured events)
+                tickets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum: [adult, child]
+                      isForeigner:
+                        type: boolean
+                contactInfo:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    phone:
+                      type: string
+              required:
+                - event
+                - date
+                - time
+                - tickets
+                - contactInfo
+      responses:
+        "201":
+          description: Temporary booking created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      bookingId:
+                        type: string
+                      sessionId:
+                        type: string
+                      expiresAt:
+                        type: string
+                        format: date-time
+                      totalAmount:
+                        type: number
+        "400":
+          description: Invalid input or seats unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /temp-bookings/test-cleanup:
+    post:
+      summary: Test cleanup of expired temporary bookings
+      tags:
+        - Temp Bookings
+      responses:
+        "200":
+          description: Cleanup executed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  # Partner Routes
+  /partners/register:
+    post:
+      summary: Register a partner
+      tags:
+        - Partners
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name: { type: string }
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "201": { description: Partner registered }
+  /partners/login:
+    post:
+      summary: Login partner
+      tags:
+        - Partners
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200": { description: Login successful }
+  /partners/dashboard:
+    get:
+      summary: Get partner dashboard
+      tags:
+        - Partners
+      security:
+        - bearerAuth: []
+      responses:
+        "200": { description: Dashboard data }
+  /partners/regenerate:
+    post:
+      summary: Regenerate API token
+      tags:
+        - Partners
+      security:
+        - bearerAuth: []
+      responses:
+        "200": { description: Token regenerated }
+  /partners/webhook:
+    put:
+      summary: Update webhook URL
+      tags:
+        - Partners
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                webhookUrl: { type: string }
+      responses:
+        "200": { description: Webhook updated }
+  # Partner Event Routes
+  /partner-events/check:
+    get:
+      summary: Check partner API status
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      responses:
+        "200": { description: API working }
+  /partner-events/monuments:
+    get:
+      summary: Get all monuments (Partner)
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      responses:
+        "200": { description: List of monuments }
+  /partner-events/monuments/{id}:
+    get:
+      summary: Get monument by ID (Partner)
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: Monument details }
+  /partner-events/events/{id}:
+    get:
+      summary: Get event by ID (Partner)
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: Event details }
+  /partner-events/seat-layout/{event_id}:
+    get:
+      summary: Get seat layout (Partner)
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: Seat layout }
+  /partner-events/{id}/remaining-capacity:
+    get:
+      summary: Get remaining capacity (Partner)
+      tags:
+        - Partner Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: Capacity }
+  /partner-events/temp-bookings/create:
+    post:
+      summary: Create temp booking (Partner)
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201": { description: Temp booking created }
+  /partner-events/payments/create-order:
+    post:
+      summary: Create payment order (Partner)
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200": { description: Order created }
+  /partner-events/payments/verify:
+    post:
+      summary: Verify payment (Partner)
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200": { description: Payment verified }
+  /partner-events/bookings/{id}:
+    get:
+      summary: Get booking details (Partner)
+      tags:
+        - Partner Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: Booking details }
+security:
+  - bearerAuth: []
