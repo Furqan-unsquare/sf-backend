@@ -7,10 +7,9 @@ if (process.env.REDIS_URL) {
   console.log("📡 Connecting to Redis via REDIS_URL");
 
   redis = new IORedis(process.env.REDIS_URL, {
-  maxRetriesPerRequest: null,
-  retryStrategy: (times) => Math.min(times * 50, 2000),
-  tls: {} // <-- THIS is what you're missing
-});
+    maxRetriesPerRequest: null,
+    retryStrategy: (times) => Math.min(times * 50, 2000),
+  });
 
 } else {
   // ✅ Local Redis fallback
